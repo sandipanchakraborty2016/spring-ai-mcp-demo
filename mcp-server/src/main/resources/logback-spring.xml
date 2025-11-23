@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- File appender for STDIO mode - logs go to file only -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>mcp-server-stdio.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Null appender - discards all logs -->
+    <appender name="NULL" class="ch.qos.logback.core.helpers.NOPAppender"/>
+
+    <!-- Root logger - send everything to file, nothing to console -->
+    <root level="OFF">
+        <appender-ref ref="NULL" />
+    </root>
+</configuration>
