@@ -1,0 +1,58 @@
+services:
+  # MCP Server Service
+  - type: web
+    name: spring-ai-mcp-server
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./mcp-server/Dockerfile
+    dockerContext: ./mcp-server
+    envVars:
+      - key: SPRING_AI_MCP_SERVER_TRANSPORT
+        value: sse
+      - key: SPRING_AI_MCP_SERVER_SSE_MESSAGE_ENDPOINT
+        value: /mcp/message
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # MCP Client Service
+  - type: web
+    name: spring-ai-mcp-client
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./mcp-client/Dockerfile
+    dockerContext: ./mcp-client
+    envVars:
+      - key: SPRING_AI_MCP_CLIENT_TRANSPORT
+        value: sse
+      - key: SPRING_AI_MCP_CLIENT_SSE_BASE_URL
+        sync: false
+        # This will be set to the server's URL after deployment
+        # Format: https://spring-ai-mcp-server.onrender.com
+      - key: SPRING_AI_MCP_CLIENT_SSE_MESSAGE_ENDPOINT
+        value: /mcp/message
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # MCP Host Service (AI Chat Application)
+  - type: web
+    name: spring-ai-mcp-host
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./mcp-host/Dockerfile
+    dockerContext: ./mcp-host
+    envVars:
+      - key: SPRING_AI_MCP_CLIENT_TRANSPORT
+        value: sse
+      - key: SPRING_AI_MCP_CLIENT_SSE_BASE_URL
+        sync: false
+        # Set to server URL: https://spring-ai-mcp-server.onrender.com
+      - key: SPRING_AI_MCP_CLIENT_SSE_MESSAGE_ENDPOINT
+        value: /mcp/message
+      - key: SPRING_AI_OPENAI_API_KEY
+        sync: false
+        # Set your OpenAI API key here or in Render dashboard
+    healthCheckPath: /health
+    autoDeploy: true

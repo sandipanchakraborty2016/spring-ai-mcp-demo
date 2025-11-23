@@ -1,0 +1,6 @@
+/app/src/main/java/com/example/mcpserver/CalculatorService.java
+/app/src/main/java/com/example/mcpserver/DataStorageService.java
+/app/src/main/java/com/example/mcpserver/FileService.java
+/app/src/main/java/com/example/mcpserver/HealthController.java
+/app/src/main/java/com/example/mcpserver/McpServerApplication.java
+/app/src/main/java/com/example/mcpserver/TimeService.java
