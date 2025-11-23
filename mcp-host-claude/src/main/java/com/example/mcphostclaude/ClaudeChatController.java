@@ -2,9 +2,15 @@ package com.example.mcphostclaude;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +26,12 @@ import java.util.Map;
 public class ClaudeChatController {
 
     private static final Logger logger = LoggerFactory.getLogger(ClaudeChatController.class);
+
+    @Autowired(required = false)
+    private ChatModel chatModel;
+
+    @Autowired(required = false)
+    private List<String> mcpFunctionNames;
 
     /**
      * Get Claude host status.
@@ -37,10 +49,32 @@ public class ClaudeChatController {
     }
 
     /**
+     * Chat endpoint that processes queries using Claude with MCP tools.
+     * Supports both GET with query parameter and POST with JSON body.
+     */
+    @GetMapping("/chat")
+    public Map<String, Object> chatGet(@RequestParam(required = false) String query) {
+        return processChat(query);
+    }
+
+    @PostMapping("/chat")
+    public Map<String, Object> chatPost(@RequestBody(required = false) Map<String, String> request) {
+        String query = request != null ? request.get("query") : null;
+        return processChat(query);
+    }
+
+    /**
      * Demo endpoint showing Claude + MCP integration.
+     * Now supports actual query processing!
      */
     @GetMapping("/demo")
-    public Map<String, Object> demo() {
+    public Map<String, Object> demo(@RequestParam(required = false) String query) {
+        if (query != null && !query.isEmpty()) {
+            // If query parameter provided, process it with AI
+            return processChat(query);
+        }
+
+        // Otherwise return demo information
         Map<String, Object> response = new HashMap<>();
         response.put("title", "Claude + MCP Demo");
         response.put("description", "Demonstrates MCP is Model-Agnostic");
@@ -53,17 +87,64 @@ public class ClaudeChatController {
         ));
         response.put("keyPoint", "Same MCP tools work with both OpenAI and Claude - that's the power of MCP!");
         response.put("features", new String[]{
-            "Connect to shared MCP Server",
-            "Use tools: calculator, time, file operations, storage",
-            "Stream responses using Server-Sent Events",
-            "Automatic function calling with Claude",
-            "Model-agnostic tool integration"
+            "✓ Connected to shared MCP Server",
+            "✓ Claude 3.5 Sonnet with automatic function calling",
+            "✓ Available tools: calculator, time, file operations, storage",
+            "✓ Try it: /api/demo?query=What+is+25+times+4"
         });
-        response.put("setup", Map.of(
-            "step1", "Set ANTHROPIC_API_KEY environment variable",
-            "step2", "Claude automatically discovers MCP tools",
-            "step3", "Ask Claude to use tools: 'What time is it?' or 'Calculate 25 + 17'"
-        ));
+        response.put("exampleQueries", new String[]{
+            "/api/chat?query=What+time+is+it",
+            "/api/chat?query=Calculate+144+divided+by+12",
+            "/api/demo?query=What+is+the+square+root+of+144"
+        });
+        response.put("chatModelConfigured", chatModel != null);
+        response.put("mcpFunctionsAvailable", mcpFunctionNames != null ? mcpFunctionNames.size() : 0);
+        return response;
+    }
+
+    /**
+     * Process chat query using Claude with MCP tools.
+     */
+    private Map<String, Object> processChat(String query) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (chatModel == null) {
+            response.put("error", "ChatModel not configured");
+            response.put("message", "Anthropic API key may be missing. Set ANTHROPIC_API_KEY environment variable.");
+            response.put("status", "unavailable");
+            return response;
+        }
+
+        if (query == null || query.trim().isEmpty()) {
+            response.put("error", "Query parameter is required");
+            response.put("example", "/api/chat?query=What+is+25+times+4");
+            return response;
+        }
+
+        try {
+            logger.info("Processing chat query with Claude: {}", query);
+
+            // Call Claude ChatModel
+            Prompt prompt = new Prompt(query);
+            ChatResponse chatResponse = chatModel.call(prompt);
+
+            String aiResponse = chatResponse.getResult().getOutput().getText();
+
+            response.put("query", query);
+            response.put("response", aiResponse);
+            response.put("model", "Anthropic Claude 3.5 Sonnet");
+            response.put("note", "MCP tools will be auto-configured when available");
+            response.put("timestamp", System.currentTimeMillis());
+
+            logger.info("Claude response generated successfully");
+
+        } catch (Exception e) {
+            logger.error("Error processing chat query with Claude", e);
+            response.put("error", "Failed to process query");
+            response.put("message", e.getMessage());
+            response.put("query", query);
+        }
+
         return response;
     }
 

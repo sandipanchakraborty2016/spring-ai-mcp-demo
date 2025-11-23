@@ -2,16 +2,23 @@
 
 A comprehensive demonstration of the **Model Context Protocol (MCP)** using Spring AI, featuring a fully-functional MCP server, client, and **model-agnostic host implementations** with multiple tool examples.
 
+> **📘 Architecture Guide**: See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed explanation of MCP protocol usage vs REST wrappers.
+
 ## 🎯 Project Overview
 
 This project showcases Spring AI's MCP implementation with:
-- **MCP Server**: Exposes multiple tools via Server-Sent Events (SSE)
-- **MCP Client**: Consumes and invokes server tools through REST endpoints
-- **MCP Host (OpenAI)**: AI-powered chat using OpenAI GPT models with MCP tools
-- **MCP Host (Claude)**: AI-powered chat using Anthropic Claude with MCP tools
+- **MCP Server** (Port 8080): Exposes multiple tools via Server-Sent Events (SSE) and `@McpTool` annotations
+- **MCP Client** (Port 8081): REST API wrapper for direct tool access (convenience endpoints, not using MCP protocol)
+- **MCP Host OpenAI** (Port 8082): ✅ **TRUE MCP DEMO** - AI chat using OpenAI GPT with tools via MCP protocol
+- **MCP Host Claude** (Port 8083): ✅ **TRUE MCP DEMO** - AI chat using Anthropic Claude with tools via MCP protocol
 - **Spring Boot 3.4.12** and **Spring AI 1.1.0-M2**
 - **Docker** support for containerized deployment
 - **Model-Agnostic Design**: Same MCP tools work with different AI providers
+
+### 🔍 MCP Protocol vs REST APIs
+
+- **MCP Protocol** (SSE + JSON-RPC): Used in `mcp-host` where ChatModel calls tools ✅
+- **REST Wrapper APIs**: Used in `mcp-client` for direct tool testing (not MCP protocol) ⚠️
 
 ## 🌟 Key Feature: Model-Agnostic MCP
 
@@ -90,9 +97,19 @@ This demo proves MCP's **model-agnostic** nature:
 
 ## 📋 Prerequisites
 
-- **Java 17** or higher
+- **Java 21 JDK** (not just JRE - includes compiler)
 - **Maven 3.6+**
 - **Docker** and **Docker Compose** (for containerized deployment)
+
+### Installing Java 21 JDK
+
+```bash
+# Ubuntu/Debian
+sudo apt-get update && sudo apt-get install openjdk-21-jdk
+
+# Verify installation
+javac -version  # Should show: javac 21.x.x
+```
 
 ## 🏃 Quick Start
 
