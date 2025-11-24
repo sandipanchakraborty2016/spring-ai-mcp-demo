@@ -400,6 +400,10 @@ curl http://localhost:8082/api/mcp-info
 curl http://localhost:8083/api/mcp-info
 ```
 
+### Comprehensive Test Suite
+
+For a complete test guide with all endpoints and examples, see [TESTING.md](TESTING.md)
+
 ## 📚 Learn More
 
 - [Spring AI Documentation](https://docs.spring.io/spring-ai/reference/)
