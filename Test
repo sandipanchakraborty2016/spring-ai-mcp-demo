@@ -43,10 +43,6 @@
   # Time tool
   curl "http://localhost:8082/api/mcp/time"
 
-  # Storage operations
-  curl -X POST "http://localhost:8082/api/mcp/storage/store?key=name&value=Alice"
-  curl "http://localhost:8082/api/mcp/storage/retrieve?key=name"
-  curl "http://localhost:8082/api/mcp/storage/list"
 
   4. File Operations via MCP
 
@@ -217,3 +213,18 @@
   # 6. List all MCP tools
   echo -e "\n=== Listing All MCP Tools ==="
   curl -s "http://localhost:8082/api/mcp-tools" | jq
+
+
+  # Storage operations
+  curl "http://localhost:8082/api/chat?query=Store+my+email+as+user@example.com+with+key+email"
+  curl "http://localhost:8082/api/chat?query=What+is+my+email+address"
+  curl "http://localhost:8082/api/chat?query=List+all+stored+keys"
+
+
+  # Calculations
+  curl "http://localhost:8082/api/chat?query=If+I+have+100+dollars+and+spend+25+percent+how+much+is+left"
+  curl "http://localhost:8082/api/chat?query=Calculate+2+to+the+power+of+10"
+
+
+  # Complex queries (multiple tools)
+  curl "http://localhost:8082/api/chat?query=Calculate+sqrt+of+256+store+it+as+result+and+tell+me+the+time"
