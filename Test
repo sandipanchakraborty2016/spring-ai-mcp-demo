@@ -228,3 +228,6 @@
 
   # Complex queries (multiple tools)
   curl "http://localhost:8082/api/chat?query=Calculate+sqrt+of+256+store+it+as+result+and+tell+me+the+time"
+
+
+  https://app.presentations.ai/view/rQyoH7mDsf
