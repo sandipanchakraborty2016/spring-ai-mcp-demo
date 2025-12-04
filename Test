@@ -1,0 +1,233 @@
+> How can I test?
+
+● You can test the Spring AI MCP integration in several ways:
+
+  1. Basic Chat Endpoint Tests
+
+  Test the ChatModel with natural language queries that will trigger MCP tool calls:
+
+  # Test multiplication
+  curl "http://localhost:8082/api/chat?query=What+is+25+times+4"
+
+  # Test current time
+  curl "http://localhost:8082/api/chat?query=What+is+the+current+time"
+
+  # Test square root
+  curl "http://localhost:8082/api/chat?query=Calculate+the+square+root+of+144"
+
+  # Test division
+  curl "http://localhost:8082/api/chat?query=What+is+100+divided+by+5"
+
+  # Test multi-step calculation
+  curl "http://localhost:8082/api/chat?query=Calculate+the+square+root+of+144+and+then+multiply+it+by+5"
+
+  # Test addition
+  curl "http://localhost:8082/api/chat?query=Add+456+and+789"
+
+  2. List Available MCP Tools
+
+  See all 20 tools available from the MCP Server:
+
+  curl "http://localhost:8082/api/mcp-tools" | jq
+
+  3. Direct MCP Tool Calls
+
+  Test direct tool invocation without ChatModel (these endpoints bypass OpenAI):
+
+  # Calculator operations
+  curl "http://localhost:8082/api/mcp/calc/multiply?a=25&b=4"
+  curl "http://localhost:8082/api/mcp/calc/add?a=100&b=200"
+  curl "http://localhost:8082/api/mcp/calc/sqrt?number=144"
+  curl "http://localhost:8082/api/mcp/calc/divide?a=100&b=5"
+
+  # Time tool
+  curl "http://localhost:8082/api/mcp/time"
+
+
+  4. File Operations via MCP
+
+  # Create a file
+  curl -X POST "http://localhost:8082/api/mcp/files/write" \
+    -H "Content-Type: application/json" \
+    -d '{"filename":"hello.txt","content":"Hello from MCP!"}'
+
+  # Read the file
+  curl "http://localhost:8082/api/mcp/files/read?filename=hello.txt"
+
+  # List files
+  curl "http://localhost:8082/api/mcp/files/list"
+
+  # Get file info
+  curl "http://localhost:8082/api/mcp/files/info?filename=hello.txt"
+
+  5. Test with POST Method
+
+  You can also use POST for chat queries:
+
+  curl -X POST "http://localhost:8082/api/chat" \
+    -H "Content-Type: application/json" \
+    -d '{"query":"What is 15 times 8?"}'
+
+  6. Monitor Logs in Real-Time
+
+  Watch the MCP tool calls happening:
+
+  # Watch MCP Host logs
+  tail -f /tmp/host-mcp-tools.log | grep -E "(Executing tool call|MCP)"
+
+  # Watch MCP Server logs
+  tail -f /tmp/mcp-server.log
+
+  7. Test Status Endpoints
+
+  Check system health:
+
+  # MCP Host status
+  curl "http://localhost:8082/api/status"
+
+  # MCP Server health
+  curl "http://localhost:8080/health"
+
+  # MCP info
+  curl "http://localhost:8082/api/mcp-info"
+
+  8. Complex Scenarios
+
+  Test more advanced queries:
+
+  # File + calculation
+  curl "http://localhost:8082/api/chat?query=Calculate+25+times+4+and+tell+me+what+files+exist"
+
+  # Storage + math
+  curl "http://localhost:8082/api/chat?query=What+is+the+square+root+of+256"
+
+  Expected Behavior
+
+  When you run these tests, you should see:
+  - Response includes: The AI's natural language response
+  - mcpToolsConfigured: true (indicates MCP tools are available)
+  - mcpSyncClientsAvailable: true (indicates connection to MCP Server)
+  - Logs show: "Executing tool call: [toolname]" for each MCP tool invocation
+
+  The key difference between direct tool calls and ChatModel queries is that ChatModel uses OpenAI to intelligently decide which tools to call based on natural language understanding.
+
+> curl -X POST "http://localhost:8082/api/mcp/storage/store?key=name&value=Alice"
+{"timestamp":"2025-11-23T20:34:15.407+00:00","status":400,"error":"Bad Request","path":"/api/mcp/storage/store"}
+
+● The storage endpoint expects a JSON body instead of query parameters. Let me check the correct endpoint format:
+
+● Read(src/main/java/com/example/mcphost/McpServicesController.java)
+  ⎿  Read 100 lines
+
+● I see! The storage endpoint uses the key as a path variable and expects the value in a JSON body. Here are the corrected test commands:
+
+  Corrected Storage Operations
+
+  # Store a value (key in path, value in JSON body)
+  curl -X POST "http://localhost:8082/api/mcp/storage/name" \
+    -H "Content-Type: application/json" \
+    -d '{"value":"Alice"}'
+
+  # Retrieve the value
+  curl "http://localhost:8082/api/mcp/storage/name"
+
+  # Store more values
+  curl -X POST "http://localhost:8082/api/mcp/storage/age" \
+    -H "Content-Type: application/json" \
+    -d '{"value":"25"}'
+
+  curl -X POST "http://localhost:8082/api/mcp/storage/city" \
+    -H "Content-Type: application/json" \
+    -d '{"value":"New York"}'
+
+  # List all keys
+  curl "http://localhost:8082/api/mcp/storage"
+
+  # Count entries
+  curl "http://localhost:8082/api/mcp/storage/count"
+
+  # Delete a specific key
+  curl -X DELETE "http://localhost:8082/api/mcp/storage/age"
+
+  # Clear all storage
+  curl -X DELETE "http://localhost:8082/api/mcp/storage"
+
+  Corrected File Operations
+
+  # Write a file (filename in path, content in JSON body)
+  curl -X POST "http://localhost:8082/api/mcp/files/hello.txt" \
+    -H "Content-Type: application/json" \
+    -d '{"content":"Hello from MCP!"}'
+
+  # Read the file
+  curl "http://localhost:8082/api/mcp/files/hello.txt"
+
+  # Append to file
+  curl -X PUT "http://localhost:8082/api/mcp/files/hello.txt/append" \
+    -H "Content-Type: application/json" \
+    -d '{"content":"\nAppended line!"}'
+
+  # Get file info
+  curl "http://localhost:8082/api/mcp/files/hello.txt/info"
+
+  # List all files
+  curl "http://localhost:8082/api/mcp/files"
+
+  # Get workspace path
+  curl "http://localhost:8082/api/mcp/workspace"
+
+  # Delete file
+  curl -X DELETE "http://localhost:8082/api/mcp/files/hello.txt"
+
+  Complete Test Suite
+
+  Here's a full test sequence you can run:
+
+  # 1. Test ChatModel with calculations
+  echo "=== Testing ChatModel ==="
+  curl -s "http://localhost:8082/api/chat?query=What+is+25+times+4" | jq
+  curl -s "http://localhost:8082/api/chat?query=What+is+the+current+time" | jq
+
+  # 2. Test direct calculator tools
+  echo -e "\n=== Testing Calculator Tools ==="
+  curl -s "http://localhost:8082/api/mcp/calc/add?a=100&b=200" | jq
+  curl -s "http://localhost:8082/api/mcp/calc/sqrt?number=144" | jq
+
+  # 3. Test storage operations
+  echo -e "\n=== Testing Storage ==="
+  curl -s -X POST "http://localhost:8082/api/mcp/storage/name" -H "Content-Type: application/json" -d '{"value":"Alice"}' | jq
+  curl -s -X POST "http://localhost:8082/api/mcp/storage/age" -H "Content-Type: application/json" -d '{"value":"30"}' | jq
+  curl -s "http://localhost:8082/api/mcp/storage" | jq
+  curl -s "http://localhost:8082/api/mcp/storage/name" | jq
+
+  # 4. Test file operations
+  echo -e "\n=== Testing File Operations ==="
+  curl -s -X POST "http://localhost:8082/api/mcp/files/test.txt" -H "Content-Type: application/json" -d '{"content":"Hello MCP!"}' | jq
+  curl -s "http://localhost:8082/api/mcp/files/test.txt" | jq
+  curl -s "http://localhost:8082/api/mcp/files" | jq
+
+  # 5. Test time
+  echo -e "\n=== Testing Time Tool ==="
+  curl -s "http://localhost:8082/api/mcp/time" | jq
+
+  # 6. List all MCP tools
+  echo -e "\n=== Listing All MCP Tools ==="
+  curl -s "http://localhost:8082/api/mcp-tools" | jq
+
+
+  # Storage operations
+  curl "http://localhost:8082/api/chat?query=Store+my+email+as+user@example.com+with+key+email"
+  curl "http://localhost:8082/api/chat?query=What+is+my+email+address"
+  curl "http://localhost:8082/api/chat?query=List+all+stored+keys"
+
+
+  # Calculations
+  curl "http://localhost:8082/api/chat?query=If+I+have+100+dollars+and+spend+25+percent+how+much+is+left"
+  curl "http://localhost:8082/api/chat?query=Calculate+2+to+the+power+of+10"
+
+
+  # Complex queries (multiple tools)
+  curl "http://localhost:8082/api/chat?query=Calculate+sqrt+of+256+store+it+as+result+and+tell+me+the+time"
+
+
+  https://app.presentations.ai/view/rQyoH7mDsf
